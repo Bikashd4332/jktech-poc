@@ -33,4 +33,19 @@ describe("JWT Strategy", () => {
 
     expect(await strategy.validate(payload)).toBe(payload);
   });
+
+  it("should throw ForbiddenException on invalid user", async () => {
+    const payload = {
+      email: "email",
+      firstName: "fName",
+      lastName: "Lname",
+      id: "1",
+    };
+
+    jest.spyOn(strategy["user"], "isUserExists").mockResolvedValueOnce(null);
+
+    await expect(strategy.validate(payload)).rejects.toThrowError(
+      "Invalid user provided.",
+    );
+  });
 });
