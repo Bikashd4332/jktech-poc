@@ -1,7 +1,7 @@
 export function convertBytes(bytes: number) {
-  const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+  const sizes = ["Bytes", "KB", "MB", "GB"];
 
-  if (bytes == 0) {
+  if (bytes === 0) {
     return "n/a";
   }
 

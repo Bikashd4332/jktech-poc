@@ -1,12 +1,13 @@
-import { Test, TestingModule } from "@nestjs/testing";
-import { AuthService } from "./auth.service";
-import { UserService } from "../user/user.service";
-import { PasswordService } from "../password/password.service";
-import { JwtService } from "../jwt/jwt.service";
-import { getRepositoryToken } from "@nestjs/typeorm";
-import { UserEntity } from "../../entities/user.entity";
+import { createMock } from "@golevelup/ts-jest";
 import { ConfigService } from "@nestjs/config";
+import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
 import { mockUserEntity } from "../../entities/__fixtures__/user-entity.fixture";
+import { UserEntity } from "../../entities/user.entity";
+import { JwtService } from "../jwt/jwt.service";
+import { PasswordService } from "../password/password.service";
+import { UserService } from "../user/user.service";
+import { AuthService } from "./auth.service";
 
 describe("AuthService", () => {
   let authService: AuthService;
@@ -25,7 +26,9 @@ describe("AuthService", () => {
           useValue: {},
         },
       ],
-    }).compile();
+    })
+      .useMocker(createMock)
+      .compile();
 
     authService = module.get<AuthService>(AuthService);
     userService = module.get<UserService>(UserService);
@@ -46,6 +49,7 @@ describe("AuthService", () => {
 
       try {
         await authService.register({
+          roleId: 1,
           email: "email",
           password: "password",
           lastName: "lName",
@@ -59,28 +63,30 @@ describe("AuthService", () => {
     });
 
     it("should create user", async () => {
+      const dto = {
+        roleId: 1,
+        email: "email",
+        password: "password",
+        lastName: "lName",
+        firstName: "fName",
+      };
+
       const existSpy = jest
         .spyOn(userService, "isUserExists")
         .mockResolvedValue(null);
       const createSpy = jest
         .spyOn(userService, "createUser")
-        .mockResolvedValue(new UserEntity());
+        .mockResolvedValue({ ...mockUserEntity, ...dto });
+      const userTokenSpy = jest
+        .spyOn(userService, "getUserToken")
+        .mockReturnValue("mock-token");
 
-      const newUser = await authService.register({
-        email: "email",
-        password: "password",
-        lastName: "lName",
-        firstName: "fName",
-      });
+      const newUser = await authService.register(dto);
 
-      expect(newUser).toBeInstanceOf(UserEntity);
+      expect(newUser).toHaveProperty(["id"]);
       expect(existSpy).toHaveBeenCalledWith("email");
-      expect(createSpy).toHaveBeenCalledWith({
-        email: "email",
-        password: "password",
-        lastName: "lName",
-        firstName: "fName",
-      });
+      expect(createSpy).toHaveBeenCalledWith(dto);
+      expect(userTokenSpy).toHaveBeenCalledWith(expect.objectContaining(dto));
     });
   });
 
@@ -135,9 +141,6 @@ describe("AuthService", () => {
       const userTokenSpy = jest
         .spyOn(userService, "getUserToken")
         .mockReturnValue("mock-token");
-      const userUpdateSpy = jest
-        .spyOn(userService, "updateUser")
-        .mockResolvedValue(mockUserEntity);
 
       const token = await authService.login({
         email: "email",
@@ -148,10 +151,6 @@ describe("AuthService", () => {
       expect(existSpy).toHaveBeenCalledWith("email");
       expect(checkPassSpy).toHaveBeenCalledWith(mockUserEntity, "password");
       expect(userTokenSpy).toHaveBeenCalledWith(mockUserEntity);
-      expect(userUpdateSpy).toHaveBeenCalledWith({
-        ...mockUserEntity,
-        token: "mock-token",
-      });
     });
   });
 });

@@ -1,6 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
 import { JwtStrategy } from "./jwt.strategy";
+import { createMock } from "@golevelup/ts-jest";
 
 describe("JWT Strategy", () => {
   let strategy: JwtStrategy;
@@ -9,14 +10,11 @@ describe("JWT Strategy", () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         JwtStrategy,
-        {
-          provide: ConfigService,
-          useValue: {
-            get: jest.fn().mockReturnValue("secret"),
-          },
-        },
+        { provide: ConfigService, useValue: { get: () => "secret" } },
       ],
-    }).compile();
+    })
+      .useMocker(createMock)
+      .compile();
 
     strategy = module.get<JwtStrategy>(JwtStrategy);
   });
@@ -26,6 +24,13 @@ describe("JWT Strategy", () => {
   });
 
   it("should return payload on validate", async () => {
-    expect(await strategy.validate("payload")).toBe("payload");
+    const payload = {
+      email: "email",
+      firstName: "fName",
+      lastName: "Lname",
+      id: "1",
+    };
+
+    expect(await strategy.validate(payload)).toBe(payload);
   });
 });

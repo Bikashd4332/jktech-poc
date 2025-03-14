@@ -1,6 +1,5 @@
-import { Body, Controller, Get, Post, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiResponse, ApiTags } from "@nestjs/swagger";
-import { Response } from "express";
 import { CheckPermissions } from "src/global/decorators/check-permission.decorator";
 import { PermissionGuard } from "src/global/guards/permission.guard";
 import { Action } from "src/types/permissions";
@@ -62,13 +61,8 @@ export class UserController {
     status: 500,
     description: "Internal Server Error",
   })
-  async login(
-    @Body() login: LoginDto,
-    @Res({ passthrough: true }) res: Response,
-  ) {
+  async login(@Body() login: LoginDto) {
     const token = await this.authService.login(login);
-
-    res.status(200);
 
     return {
       message: "Login successful",

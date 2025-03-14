@@ -1,6 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { JwtService } from "./jwt.service";
 import { ConfigService } from "@nestjs/config";
+import { createMock } from "@golevelup/ts-jest";
 
 jest.mock("jsonwebtoken", () => {
   return { sign: jest.fn().mockReturnValue("jwt") };
@@ -12,16 +13,10 @@ describe("JwtService", () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        JwtService,
-        {
-          provide: ConfigService,
-          useValue: {
-            get: jest.fn(),
-          },
-        },
-      ],
-    }).compile();
+      providers: [JwtService, ConfigService],
+    })
+      .useMocker(createMock)
+      .compile();
 
     service = module.get<JwtService>(JwtService);
     config = module.get<ConfigService>(ConfigService);
@@ -35,6 +30,7 @@ describe("JwtService", () => {
     const configGetSpy = jest.spyOn(config, "get").mockReturnValue("secret");
 
     expect(service.sign("payload")).toBe("jwt");
-    expect(configGetSpy).toHaveBeenCalledWith("jwtSecret");
+    expect(configGetSpy).toHaveBeenNthCalledWith(1, "jwt.secret");
+    expect(configGetSpy).toHaveBeenNthCalledWith(2, "jwt.expiry");
   });
 });

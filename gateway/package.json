@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@casl/ability": "^6.7.3",
+    "@golevelup/ts-jest": "^0.6.2",
     "@keyv/redis": "^4.3.0",
     "@nestjs/cache-manager": "^3.0.0",
     "@nestjs/common": "^11.0.11",
@@ -109,10 +110,14 @@
       "**/*.(t|j)s"
     ],
     "coveragePathIgnorePatterns": [
+      "coverage/*",
       "src/db",
+      "dist/*",
       ".module.ts",
       "src/main.ts",
       "test/*",
+      "src/*/dto/*",
+      "src/factories/*",
       "type-orm.config.ts"
     ],
     "coverageDirectory": "coverage",

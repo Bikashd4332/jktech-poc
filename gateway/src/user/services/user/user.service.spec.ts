@@ -1,18 +1,18 @@
-import { Test, TestingModule } from "@nestjs/testing";
-import { UserService } from "./user.service";
-import { getRepositoryToken } from "@nestjs/typeorm";
-import { UserEntity } from "../../entities/user.entity";
-import { PasswordService } from "../password/password.service";
-import { JwtService } from "../jwt/jwt.service";
+import { createMock } from "@golevelup/ts-jest";
 import { ConfigService } from "@nestjs/config";
+import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { mockUserEntity } from "../../entities/__fixtures__/user-entity.fixture";
+import { UserEntity } from "../../entities/user.entity";
+import { JwtService } from "../jwt/jwt.service";
+import { PasswordService } from "../password/password.service";
+import { UserService } from "./user.service";
 
 describe("UserService", () => {
   let service: UserService;
   let repo: Repository<UserEntity>;
   let passwordService: PasswordService;
-  let jwtService: JwtService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -23,19 +23,15 @@ describe("UserService", () => {
         JwtService,
         {
           provide: getRepositoryToken(UserEntity),
-          useValue: {
-            find: jest.fn(),
-            findOne: jest.fn(),
-            create: jest.fn(),
-            save: jest.fn(),
-          },
+          useValue: createMock(),
         },
       ],
-    }).compile();
+    })
+      .useMocker(createMock)
+      .compile();
 
     service = module.get<UserService>(UserService);
     passwordService = module.get<PasswordService>(PasswordService);
-    jwtService = module.get<JwtService>(JwtService);
     repo = module.get<Repository<UserEntity>>(getRepositoryToken(UserEntity));
   });
 
@@ -58,7 +54,6 @@ describe("UserService", () => {
     const passwordSpy = jest
       .spyOn(passwordService, "generate")
       .mockResolvedValue("password-hash");
-    const jwtSpy = jest.spyOn(jwtService, "sign").mockReturnValue("jwt");
     const createSpy = jest
       .spyOn(repo, "create")
       .mockReturnValue(mockUserEntity as any);
@@ -71,22 +66,18 @@ describe("UserService", () => {
       firstName: "fName",
       lastName: "lName",
       password: "password",
+      roleId: 1,
     });
 
     expect(newUser).toStrictEqual(mockUserEntity);
     expect(passwordSpy).toHaveBeenCalledWith("password");
-    expect(saveSpy).toHaveBeenCalledTimes(2);
-    expect(jwtSpy).toHaveBeenCalledWith({
-      id: 0,
-      email: "email",
-      firstName: "fName",
-      lastName: "lName",
-    });
+    expect(saveSpy).toHaveBeenCalledTimes(1);
     expect(createSpy).toHaveBeenCalledWith({
       email: "email",
       firstName: "fName",
       lastName: "lName",
       passwordHash: "password-hash",
+      roleId: 1,
     });
   });
 

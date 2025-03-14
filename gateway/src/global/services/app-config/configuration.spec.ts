@@ -8,7 +8,7 @@ describe("config helper", () => {
   });
 
   it("should return configs", () => {
-    const env = readFileSync(join(process.cwd(), ".env.example"), "utf8")
+    const env = readFileSync(join(process.cwd(), "../.env.example"), "utf8")
       .split("\n")
       .reduce((vars: any, i) => {
         const [variable, value] = i.split("=");
@@ -25,15 +25,21 @@ describe("config helper", () => {
         port: 6379,
       },
       database: {
-        dbName: "api",
+        dbName: "appDB",
         host: "localhost",
-        password: "secret",
+        password: "topsecret",
         port: 5432,
-        user: "postgres",
+        user: "user",
       },
       appEnv: "dev",
-      jwtSecret: "secret",
-      logLevel: "debug",
+      jwt: {
+        expiry: "2h",
+        secret: "secret",
+      },
+      upload: {
+        path: "uploads",
+        maxFileSize: 1048576,
+      },
       port: 3000,
     });
   });

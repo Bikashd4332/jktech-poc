@@ -1,13 +1,14 @@
-import { Test, TestingModule } from "@nestjs/testing";
-import { UserController } from "./user.controller";
-import { AuthService } from "./services/auth/auth.service";
-import { UserService } from "./services/user/user.service";
-import { PasswordService } from "./services/password/password.service";
 import { ConfigService } from "@nestjs/config";
-import { JwtService } from "./services/jwt/jwt.service";
+import { createMock } from "@golevelup/ts-jest";
+import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
-import { UserEntity } from "./entities/user.entity";
 import { mockUserEntity } from "./entities/__fixtures__/user-entity.fixture";
+import { UserEntity } from "./entities/user.entity";
+import { AuthService } from "./services/auth/auth.service";
+import { JwtService } from "./services/jwt/jwt.service";
+import { PasswordService } from "./services/password/password.service";
+import { UserService } from "./services/user/user.service";
+import { UserController } from "./user.controller";
 
 describe("UserController", () => {
   let controller: UserController;
@@ -18,7 +19,6 @@ describe("UserController", () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UserController],
       providers: [
-        AuthService,
         UserService,
         PasswordService,
         ConfigService,
@@ -27,12 +27,10 @@ describe("UserController", () => {
           provide: getRepositoryToken(UserEntity),
           useValue: {},
         },
-        {
-          provide: "CACHE_MANAGER",
-          useValue: jest.fn(),
-        },
       ],
-    }).compile();
+    })
+      .useMocker(createMock)
+      .compile();
 
     controller = module.get<UserController>(UserController);
     authService = module.get<AuthService>(AuthService);
@@ -46,18 +44,15 @@ describe("UserController", () => {
   describe("register method", () => {
     it("should register user", async () => {
       jest.spyOn(authService, "register").mockResolvedValue({
-        id: 0,
+        ...mockUserEntity,
         token: "token",
-        firstName: "firstName",
-        lastName: "lastName",
-        email: "email",
-        passwordHash: "p",
       });
 
       expect(
         await controller.register({
           firstName: "firstName",
           lastName: "lastName",
+          roleId: 1,
           email: "email",
           password: "p",
         }),
