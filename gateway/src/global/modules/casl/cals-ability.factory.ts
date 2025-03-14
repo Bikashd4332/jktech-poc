@@ -16,12 +16,11 @@ export class CaslAbilityFactory {
   async createForUser(user: UserEntity) {
     const { can, build } = new AbilityBuilder<AppAbility>(createMongoAbility);
 
-    const userPopulated = await this.userRepository.findOne({
-      where: { id: user.id },
-      relations: ["role.rolePermissions.permission"],
+    const userPopulated = await this.userRepository.findOneByOrFail({
+      id: user.id,
     });
 
-    userPopulated?.role?.rolePermissions.forEach((rolePermission) => {
+    userPopulated.role.rolePermissions.forEach((rolePermission) => {
       can(
         rolePermission.accessType as Action,
         rolePermission.permission.name as Permissions,

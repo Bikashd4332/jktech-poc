@@ -64,4 +64,13 @@ describe("PermissionGuard", () => {
 
     expect(await guard.canActivate(context)).toBe(false);
   });
+
+  it("should return true without any permission handlers", async () => {
+    const context = createMock<ExecutionContext>();
+
+    cls.get.mockReturnValue(mockUserEntity);
+    reflector.get.mockReturnValue(undefined);
+
+    expect(await guard.canActivate(context)).toBe(true);
+  });
 });
