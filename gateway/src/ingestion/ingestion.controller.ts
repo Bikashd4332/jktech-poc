@@ -7,6 +7,7 @@ import {
   Post,
   UseGuards,
 } from "@nestjs/common";
+import { ApiBearerAuth } from "@nestjs/swagger";
 import { CheckPermissions } from "src/global/decorators/check-permission.decorator";
 import { JwtAuthGuard } from "src/global/guards/jwt-auth.guard";
 import { PermissionGuard } from "src/global/guards/permission.guard";
@@ -19,6 +20,7 @@ export class IngestionController {
   constructor(private readonly ingestionService: IngestionService) {}
 
   @Post()
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, PermissionGuard)
   @CheckPermissions((ability) => ability.can(Action.WRITE, "Ingestion"))
   create(@Body() createIngestionDto: CreateIngestionDto) {
@@ -26,6 +28,7 @@ export class IngestionController {
   }
 
   @Get(":id")
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, PermissionGuard)
   @CheckPermissions((ability) => ability.can(Action.READ, "Ingestion"))
   findOne(@Param("id", ParseIntPipe) id: number) {

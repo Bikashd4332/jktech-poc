@@ -22,6 +22,11 @@ export class IngestionService {
     private readonly clsService: ClsService,
   ) {}
 
+  /**
+   *  Add a new ingestion
+   * @param createIngestionDto payload to create a new ingestion
+   * @returns details of the created ingestion
+   */
   addIngestion(createIngestionDto: CreateIngestionDto) {
     return firstValueFrom(
       this.ingestionClient.send<
@@ -34,6 +39,11 @@ export class IngestionService {
     );
   }
 
+  /**
+   * Get details of ingestion by id
+   * @param id ingestion id
+   * @returns the details of the ingestion
+   */
   async findIngestionById(id: number) {
     const response = await firstValueFrom(
       this.ingestionClient.send<IngestionResponse, number>("get.ingestion", id),

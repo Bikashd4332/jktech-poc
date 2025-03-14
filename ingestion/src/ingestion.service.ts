@@ -14,6 +14,11 @@ export class AppService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
+  /**
+   * Add a new ingestion
+   * @param data payload to create a new ingestion
+   * @returns newly created ingestion
+   */
   async addIngestion(data: AddIngestionDTO) {
     const newIngestion = new IngestionEntity();
 
@@ -27,19 +32,31 @@ export class AppService {
     return newIngestion;
   }
 
+  /**
+   * Sleep for a given time
+   * @param ms number in miliseconds to sleep for
+   * @returns void
+   */
   async sleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
+  /**
+   * Change the status of the ingestion to success
+   * @param payload of the newly created ingestion
+   */
   @OnEvent('add.ingestion', { async: true })
   async addIngestionHandler(payload: IngestionEntity) {
-    const random = Math.floor(Math.random() * 10) + 1;
+    const random = Math.floor(Math.random() * 11) + 20;
 
     await this.sleep(random * 1000);
 
     console.log(`Ingestion ${payload.id} processed after ${random} seconds`);
 
-    payload.status = IngestionStatusEnum.SUCCESS;
+    payload.status =
+      random % 2 === 0
+        ? IngestionStatusEnum.SUCCESS
+        : IngestionStatusEnum.FAILED;
 
     this.ingestionRepository.save(payload);
   }
