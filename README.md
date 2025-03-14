@@ -1,5 +1,10 @@
 # Steps to Execute
 
+```sh
+  # to start bulding the services
+  docker-compose up --build 
+```
+
 Use this curl to get access to the application as an admin
 
 ```c
