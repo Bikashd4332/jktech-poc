@@ -49,7 +49,7 @@ export class DocumentController {
     return {
       message: "Document created",
       document: {
-        id: newDocument?.id,
+        id: newDocument.id,
       },
     };
   }

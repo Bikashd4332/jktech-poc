@@ -1,7 +1,9 @@
-import { ConfigService } from "@nestjs/config";
 import { createMock } from "@golevelup/ts-jest";
+import { ConfigService } from "@nestjs/config";
+import { Reflector } from "@nestjs/core";
 import { Test, TestingModule } from "@nestjs/testing";
 import { getRepositoryToken } from "@nestjs/typeorm";
+import { CHECK_PERMISSIONS_KEY } from "src/global/tokens/check-permission.token";
 import { mockUserEntity } from "./entities/__fixtures__/user-entity.fixture";
 import { UserEntity } from "./entities/user.entity";
 import { AuthService } from "./services/auth/auth.service";
@@ -14,6 +16,7 @@ describe("UserController", () => {
   let controller: UserController;
   let authService: AuthService;
   let userService: UserService;
+  let reflect: Reflector;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -23,6 +26,7 @@ describe("UserController", () => {
         PasswordService,
         ConfigService,
         JwtService,
+        Reflector,
         {
           provide: getRepositoryToken(UserEntity),
           useValue: {},
@@ -32,6 +36,7 @@ describe("UserController", () => {
       .useMocker(createMock)
       .compile();
 
+    reflect = module.get<Reflector>(Reflector);
     controller = module.get<UserController>(UserController);
     authService = module.get<AuthService>(AuthService);
     userService = module.get<UserService>(UserService);
@@ -42,6 +47,14 @@ describe("UserController", () => {
   });
 
   describe("register method", () => {
+    it("should have auth for register", () => {
+      const handlers = reflect.get(CHECK_PERMISSIONS_KEY, controller.register);
+      expect(handlers).toHaveLength(1);
+      expect(handlers[0]).toBeInstanceOf(Function);
+
+      expect(handlers[0]({ can: () => true })).toBeTruthy();
+    });
+
     it("should register user", async () => {
       jest.spyOn(authService, "register").mockResolvedValue({
         ...mockUserEntity,
@@ -80,6 +93,14 @@ describe("UserController", () => {
         token: "mock-token",
       });
     });
+  });
+
+  it("should have auth for getUsers", () => {
+    const handlers = reflect.get(CHECK_PERMISSIONS_KEY, controller.getUsers);
+    expect(handlers).toHaveLength(1);
+    expect(handlers[0]).toBeInstanceOf(Function);
+
+    expect(handlers[0]({ can: () => true })).toBeTruthy();
   });
 
   describe("getUsers method", () => {

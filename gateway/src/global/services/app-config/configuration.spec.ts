@@ -19,10 +19,11 @@ describe("config helper", () => {
     process.env = Object.assign(process.env, env);
 
     expect(getConfig()).toStrictEqual({
-      redis: {
-        host: "localhost",
-        password: "",
-        port: 6379,
+      port: 3000,
+      appEnv: "dev",
+      jwt: {
+        expiry: "2h",
+        secret: "secret",
       },
       database: {
         dbName: "appDB",
@@ -31,16 +32,28 @@ describe("config helper", () => {
         port: 5432,
         user: "user",
       },
-      appEnv: "dev",
-      jwt: {
-        expiry: "2h",
-        secret: "secret",
+      redis: {
+        host: "localhost",
+        password: "",
+        port: 6379,
       },
       upload: {
         path: "uploads",
         maxFileSize: 1048576,
       },
-      port: 3000,
     });
+  });
+
+  it("should return default configs for certain values", () => {
+    const parseIntSpy = jest.spyOn(globalThis, "parseInt").mockReturnValue(0);
+
+    const config = getConfig();
+
+    expect(parseIntSpy).toHaveBeenCalledTimes(4);
+    expect(config.port).toEqual(0);
+    expect(config.database.port).toEqual(0);
+    expect(config.redis.port).toEqual(0);
+    expect(config.upload.maxFileSize).toEqual(0);
+    expect(config.jwt.expiry).toEqual("2h");
   });
 });

@@ -12,6 +12,7 @@ import { UserService } from "./user.service";
 describe("UserService", () => {
   let service: UserService;
   let repo: Repository<UserEntity>;
+  let jwtService: JwtService;
   let passwordService: PasswordService;
 
   beforeEach(async () => {
@@ -30,6 +31,7 @@ describe("UserService", () => {
       .useMocker(createMock)
       .compile();
 
+    jwtService = module.get(JwtService);
     service = module.get<UserService>(UserService);
     passwordService = module.get<PasswordService>(PasswordService);
     repo = module.get<Repository<UserEntity>>(getRepositoryToken(UserEntity));
@@ -106,6 +108,18 @@ describe("UserService", () => {
     expect(await service.getAll()).toStrictEqual([mockUserEntity]);
     expect(repoSpy).toHaveBeenCalledWith({
       select: ["id", "email", "lastName", "firstName"],
+    });
+  });
+
+  it("should get user token", () => {
+    const jwtSpy = jest.spyOn(jwtService, "sign").mockReturnValue("token");
+
+    expect(service.getUserToken(mockUserEntity as any)).toBe("token");
+    expect(jwtSpy).toHaveBeenCalledWith({
+      id: mockUserEntity.id,
+      email: mockUserEntity.email,
+      firstName: mockUserEntity.firstName,
+      lastName: mockUserEntity.lastName,
     });
   });
 });

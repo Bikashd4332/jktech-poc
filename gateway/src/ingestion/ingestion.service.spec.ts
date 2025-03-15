@@ -100,8 +100,8 @@ describe("IngestionService", () => {
       },
     } as any);
 
-    jest.spyOn(userRepo, "findOne").mockResolvedValue(mockUserEntity);
-    jest.spyOn(documentRepo, "findOne").mockResolvedValue({
+    jest.spyOn(userRepo, "findOneByOrFail").mockResolvedValue(mockUserEntity);
+    jest.spyOn(documentRepo, "findOneByOrFail").mockResolvedValue({
       id: 1,
       originalName: "test",
       mimeType: "application/pdf",
@@ -112,8 +112,8 @@ describe("IngestionService", () => {
     const result = await service.findIngestionById(1);
 
     expect(ingestionClient.send).toHaveBeenCalledWith("get.ingestion", 1);
-    expect(userRepo.findOne).toHaveBeenCalledWith({ where: { id: 1 } });
-    expect(documentRepo.findOne).toHaveBeenCalledWith({ where: { id: 1 } });
+    expect(userRepo.findOneByOrFail).toHaveBeenCalledWith({ id: 1 });
+    expect(documentRepo.findOneByOrFail).toHaveBeenCalledWith({ id: 1 });
     expect(result).toMatchObject({
       id: 1,
       user: {

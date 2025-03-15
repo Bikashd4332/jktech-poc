@@ -50,24 +50,22 @@ export class IngestionService {
     );
 
     const [document, user] = await Promise.all([
-      this.documentRepository.findOne({
-        where: { id: response.ingestion.documentId },
+      this.documentRepository.findOneByOrFail({
+        id: response.ingestion.documentId,
       }),
-      this.userRepository.findOne({
-        where: { id: response.ingestion.userId },
-      }),
+      this.userRepository.findOneByOrFail({ id: response.ingestion.userId }),
     ]);
 
     return {
       id: response.ingestion.id,
       user: {
-        id: user?.id,
-        name: user?.firstName,
-        email: user?.email,
+        id: user.id,
+        name: user.firstName,
+        email: user.email,
       },
       document: {
-        id: document?.id,
-        name: document?.originalName,
+        id: document.id,
+        name: document.originalName,
       },
       status: response.ingestion.status,
     };

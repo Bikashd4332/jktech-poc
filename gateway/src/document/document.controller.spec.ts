@@ -5,15 +5,19 @@ import { PermissionGuard } from "src/global/guards/permission.guard";
 import { DocumentController } from "./document.controller";
 import { DocumentService } from "./document.service";
 import { JwtAuthGuard } from "src/global/guards/jwt-auth.guard";
+import { Reflector } from "@nestjs/core";
+import { CHECK_PERMISSIONS_KEY } from "src/global/tokens/check-permission.token";
 
-describe("IngestionController", () => {
+describe("DocumentController", () => {
   let controller: DocumentController;
   let service: DeepMocked<DocumentService>;
+  let reflect: Reflector;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [DocumentController],
       providers: [
+        Reflector,
         {
           provide: DocumentService,
           useValue: createMock<DocumentService>(),
@@ -28,10 +32,22 @@ describe("IngestionController", () => {
 
     controller = module.get<DocumentController>(DocumentController);
     service = module.get(DocumentService);
+    reflect = module.get(Reflector);
   });
 
   it("should be defined", () => {
     expect(controller).toBeDefined();
+  });
+
+  it("should have auth for createDocument", () => {
+    const handlers = reflect.get(
+      CHECK_PERMISSIONS_KEY,
+      controller.createDocument,
+    );
+    expect(handlers).toHaveLength(1);
+    expect(handlers[0]).toBeInstanceOf(Function);
+
+    expect(handlers[0]({ can: () => true })).toBeTruthy();
   });
 
   it("should call createDocument", async () => {
@@ -59,6 +75,17 @@ describe("IngestionController", () => {
     });
   });
 
+  it("should have auth for getDocumentById", () => {
+    const handlers = reflect.get(
+      CHECK_PERMISSIONS_KEY,
+      controller.getDocumentById,
+    );
+    expect(handlers).toHaveLength(1);
+    expect(handlers[0]).toBeInstanceOf(Function);
+
+    expect(handlers[0]({ can: () => true })).toBeTruthy();
+  });
+
   it("should call getDocumentById", async () => {
     const stream = {
       pipe: jest.fn(),
@@ -70,6 +97,17 @@ describe("IngestionController", () => {
 
     expect(service.retrieveDocument).toHaveBeenCalledWith(1);
     expect(result).toBeInstanceOf(StreamableFile);
+  });
+
+  it("should have auth for updateDocument", () => {
+    const handlers = reflect.get(
+      CHECK_PERMISSIONS_KEY,
+      controller.updateDocument,
+    );
+    expect(handlers).toHaveLength(1);
+    expect(handlers[0]).toBeInstanceOf(Function);
+
+    expect(handlers[0]({ can: () => true })).toBeTruthy();
   });
 
   it("should call updateDocument", async () => {
@@ -94,6 +132,17 @@ describe("IngestionController", () => {
     });
   });
 
+  it("should have auth for deleteDocument", () => {
+    const handlers = reflect.get(
+      CHECK_PERMISSIONS_KEY,
+      controller.deleteDocument,
+    );
+    expect(handlers).toHaveLength(1);
+    expect(handlers[0]).toBeInstanceOf(Function);
+
+    expect(handlers[0]({ can: () => true })).toBeTruthy();
+  });
+
   it("should call deleteDocument", async () => {
     jest.spyOn(service, "deleteDocument").mockResolvedValue({
       id: 1,
@@ -107,7 +156,18 @@ describe("IngestionController", () => {
     });
   });
 
-  it("should call getDocuments", async () => {
+  it("should have auth for listDocuments", () => {
+    const handlers = reflect.get(
+      CHECK_PERMISSIONS_KEY,
+      controller.listDocuments,
+    );
+    expect(handlers).toHaveLength(1);
+    expect(handlers[0]).toBeInstanceOf(Function);
+
+    expect(handlers[0]({ can: () => true })).toBeTruthy();
+  });
+
+  it("should call listDocuments", async () => {
     const documents = [
       {
         id: 1,

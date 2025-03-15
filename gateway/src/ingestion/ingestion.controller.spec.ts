@@ -1,17 +1,21 @@
+import { createMock, DeepMocked } from "@golevelup/ts-jest";
+import { Reflector } from "@nestjs/core";
 import { Test, TestingModule } from "@nestjs/testing";
+import { PermissionGuard } from "src/global/guards/permission.guard";
+import { CHECK_PERMISSIONS_KEY } from "src/global/tokens/check-permission.token";
 import { IngestionController } from "./ingestion.controller";
 import { IngestionService } from "./ingestion.service";
-import { createMock, DeepMocked } from "@golevelup/ts-jest";
-import { PermissionGuard } from "src/global/guards/permission.guard";
 
 describe("IngestionController", () => {
   let controller: IngestionController;
   let service: DeepMocked<IngestionService>;
+  let reflect: Reflector;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [IngestionController],
       providers: [
+        Reflector,
         {
           provide: IngestionService,
           useValue: createMock<IngestionService>(),
@@ -22,12 +26,21 @@ describe("IngestionController", () => {
       .useValue(createMock<PermissionGuard>())
       .compile();
 
+    reflect = module.get(Reflector);
     controller = module.get<IngestionController>(IngestionController);
     service = module.get(IngestionService);
   });
 
   it("should be defined", () => {
     expect(controller).toBeDefined();
+  });
+
+  it("should have auth for create ingestion", () => {
+    const handlers = reflect.get(CHECK_PERMISSIONS_KEY, controller.create);
+    expect(handlers).toHaveLength(1);
+    expect(handlers[0]).toBeInstanceOf(Function);
+
+    expect(handlers[0]({ can: () => true })).toBeTruthy();
   });
 
   it("should call addIngestion", async () => {
@@ -57,6 +70,14 @@ describe("IngestionController", () => {
         userId: 1,
       },
     });
+  });
+
+  it("should have auth for find ingestion", () => {
+    const handlers = reflect.get(CHECK_PERMISSIONS_KEY, controller.findOne);
+    expect(handlers).toHaveLength(1);
+    expect(handlers[0]).toBeInstanceOf(Function);
+
+    expect(handlers[0]({ can: () => true })).toBeTruthy();
   });
 
   it("should call findIngestionById", async () => {
