@@ -5,6 +5,7 @@ import { CaslAbilityFactory } from "./cals-ability.factory";
 import { createMock } from "@golevelup/ts-jest";
 import { Action } from "src/types/permissions";
 import { Repository } from "typeorm";
+import { ForbiddenException } from "@nestjs/common";
 
 describe("CaslAbilityFactory", () => {
   let caslAbilityFactory: CaslAbilityFactory;
@@ -33,7 +34,7 @@ describe("CaslAbilityFactory", () => {
     const user = new UserEntity();
     user.id = 1;
 
-    (repo.findOneByOrFail as jest.Mock).mockResolvedValueOnce({
+    (repo.findOne as jest.Mock).mockResolvedValueOnce({
       role: {
         rolePermissions: [
           {
@@ -74,9 +75,8 @@ describe("CaslAbilityFactory", () => {
 
     (repo.findOne as jest.Mock).mockResolvedValueOnce(null);
 
-    const ability = await caslAbilityFactory.createForUser(user);
-
-    expect(ability).toBeDefined();
-    expect(ability.can(Action.READ, "User")).toBeFalsy();
+    expect(caslAbilityFactory.createForUser(user)).rejects.toThrow(
+      ForbiddenException,
+    );
   });
 });
